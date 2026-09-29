@@ -1,0 +1,2763 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function () {
+      try {
+        var lang = localStorage.getItem("lang") || "fa";
+        var theme = localStorage.getItem("theme") || "dark";
+        if (lang !== "fa" && lang !== "en" && lang !== "ar") lang = "fa";
+        if (theme !== "light" && theme !== "dark") theme = "dark";
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (err) {}
+    })();
+  </script>
+  <title>Mojde</title>
+  <style>
+    :root {
+      --bg: #000;
+      --ink: #fff;
+      --muted: #fff;
+      --laptop: #2a3142;
+      --screen: #0c121b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(ellipse 70% 42% at 50% 0%, rgba(225, 6, 0, 0.16), transparent 58%),
+        #000;
+      color: var(--ink);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+
+    #rays {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: #000;
+    }
+
+    #rays canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 76px;
+      padding: 10px 16px;
+      padding-top: max(10px, env(safe-area-inset-top));
+      background: rgba(16, 16, 16, 0.42);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(16px) saturate(1.35);
+      -webkit-backdrop-filter: blur(16px) saturate(1.35);
+    }
+
+    .brand {
+      display: flex;
+      line-height: 0;
+    }
+
+    .brand img {
+      display: block;
+      width: auto;
+      height: clamp(48px, 12vw, 64px);
+    }
+
+    #stage {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 76px);
+      min-height: calc(100dvh - 76px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      padding: 28px 16px 40px;
+    }
+
+    .menu {
+      width: min(560px, 100%);
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .menu-btn {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      width: 100%;
+      min-width: 0;
+      min-height: 78px;
+      padding: 16px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+      color: #f7f7f7;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .menu-btn::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      bottom: 18px;
+      inset-inline-start: 0;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: #e10600;
+    }
+
+    .menu-btn span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .menu-btn::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(225, 6, 0, 0.38);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .menu-btn.is-on::after {
+      animation: wave 0.7s ease-out forwards;
+    }
+
+    .menu-btn:hover {
+      transform: translateY(-3px);
+      border-color: rgba(225, 6, 0, 0.55);
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(225, 6, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+
+    .menu-btn:active {
+      transform: translateY(0);
+      box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .menu-btn.is-open {
+      border-color: rgba(225, 6, 0, 0.75);
+      box-shadow:
+        0 0 0 1px rgba(225, 6, 0, 0.35),
+        0 16px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .sheet {
+      width: min(760px, 100%);
+    }
+
+    .sheet[hidden] {
+      display: none;
+    }
+
+    .sheet.is-in .sheet-inner {
+      animation: sheet-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .sheet.is-in .rise {
+      animation: rise 0.55s ease both;
+    }
+
+    .sheet.is-in .rise:nth-child(2) { animation-delay: 0.08s; }
+    .sheet.is-in .rise:nth-child(3) { animation-delay: 0.16s; }
+    .sheet.is-in .rise:nth-child(4) { animation-delay: 0.24s; }
+
+    .sheet-inner {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(22px, 4vw, 36px);
+      border-radius: 24px;
+      background:
+        radial-gradient(420px 180px at 100% 0%, rgba(225, 6, 0, 0.28), transparent 60%),
+        rgba(12, 12, 14, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .kicker {
+      display: inline-block;
+      margin-bottom: 8px;
+      color: #ff6a6a;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .sheet h2 {
+      margin: 0 0 8px;
+      font-size: clamp(1.6rem, 4vw, 2.3rem);
+      line-height: 1.35;
+    }
+
+    .sheet .slogan {
+      margin: 0 0 16px;
+      color: #f3f3f3;
+      font-size: 1.02rem;
+      line-height: 1.8;
+    }
+
+    .sheet p {
+      margin: 0;
+      color: #d7d7d7;
+      line-height: 1.9;
+    }
+
+    .about-sheet {
+      display: grid;
+      grid-template-columns: 200px minmax(0, 1fr);
+      gap: 22px;
+      align-items: center;
+    }
+
+    .about-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 28px;
+      object-fit: cover;
+      display: block;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .phone {
+      display: inline-block;
+      margin: 4px 0 0;
+      direction: ltr;
+      color: #fff;
+      font-size: clamp(1.5rem, 4vw, 2.1rem);
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-decoration: none;
+      border-bottom: 3px solid #e10600;
+    }
+
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .tile {
+      display: block;
+      min-width: 0;
+      padding: 16px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .tile b {
+      display: block;
+      margin-bottom: 6px;
+      color: #fff;
+      font-size: 0.98rem;
+    }
+
+    .tile span {
+      color: #c8c8c8;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .mark {
+      display: block;
+      width: 36px;
+      height: 4px;
+      margin-bottom: 12px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #e10600, transparent);
+    }
+
+    .works {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .shot {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #0e0e12;
+      cursor: pointer;
+    }
+
+    .shot:focus-visible {
+      outline: 2px solid #e10600;
+      outline-offset: 3px;
+    }
+
+    .shot-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      direction: ltr;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .shot-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .shot-dots i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3a3a42;
+    }
+
+    .shot-dots i:first-child {
+      background: #e10600;
+    }
+
+    .shot-url {
+      flex: 1;
+      min-width: 0;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.4);
+      color: #f2f2f2;
+      font-size: 0.78rem;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .shot-view {
+      height: 320px;
+      overflow: auto;
+      overscroll-behavior: contain;
+      background: #111;
+    }
+
+    .shot-view img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    @keyframes sheet-in {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .menu-btn:focus-visible {
+      outline: 2px solid #e10600;
+      outline-offset: 3px;
+    }
+
+    @keyframes wave {
+      0% {
+        opacity: 0.85;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(18);
+      }
+    }
+
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      transition: opacity 0.45s ease, visibility 0.45s ease;
+    }
+
+    #loader.is-done {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    #viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      background: #070709;
+    }
+
+    #viewer[hidden] {
+      display: none;
+    }
+
+    .viewer-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      direction: ltr;
+      padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
+      background: #101014;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .viewer-back {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 14px;
+      background: #e10600;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .viewer-url {
+      flex: 1;
+      min-width: 0;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #f3f3f3;
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
+    #viewer-frame {
+      flex: 1;
+      width: 100%;
+      border: 0;
+      background: #fff;
+    }
+
+    .scene-slot {
+      position: relative;
+      width: min(340px, calc(100vw - 32px));
+      height: calc(min(340px, 100vw - 32px) * 390 / 340);
+    }
+
+    .scene {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 340px;
+      height: 390px;
+      margin-left: -170px;
+      transform: scale(calc(min(340px, 100vw - 32px) / 340));
+      transform-origin: top center;
+    }
+
+    .loader-logo {
+      position: absolute;
+      z-index: 7;
+      left: 50%;
+      top: 64px;
+      width: 148px;
+      height: 148px;
+      margin-left: -74px;
+      line-height: 0;
+    }
+
+    .loader-logo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .laptop {
+      position: absolute;
+      left: 50px;
+      bottom: 18px;
+      width: 240px;
+      z-index: 2;
+    }
+
+    .lid {
+      width: 196px;
+      height: 124px;
+      margin: 0 auto;
+      background: #1c2333;
+      border: 7px solid #3a4358;
+      border-bottom: none;
+      border-radius: 10px 10px 2px 2px;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .screen {
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+      background: var(--screen);
+      border-radius: 3px 3px 0 0;
+    }
+
+    .lines {
+      padding: 10px 12px 0;
+      animation: scroll-code 3s ease-in-out forwards;
+    }
+
+    .lines i {
+      display: block;
+      height: 5px;
+      margin-bottom: 7px;
+      border-radius: 4px;
+      background: #6ea8ff;
+    }
+
+    .lines i:nth-child(1) { width: 46%; background: #7d8cff; }
+    .lines i:nth-child(2) { width: 78%; background: #5ee0b5; }
+    .lines i:nth-child(3) { width: 62%; background: #f2c14e; }
+    .lines i:nth-child(4) { width: 84%; background: #6ea8ff; }
+    .lines i:nth-child(5) { width: 38%; background: #f08bb8; }
+    .lines i:nth-child(6) { width: 70%; background: #5ee0b5; }
+    .lines i:nth-child(7) { width: 54%; background: #f2c14e; }
+
+    .cursor {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      width: 7px;
+      height: 12px;
+      background: #d7e6ff;
+      animation: blink 0.7s steps(1) 4;
+    }
+
+    .deck {
+      height: 14px;
+      background: linear-gradient(#4a556c, #343c4e);
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .deck::after {
+      content: "";
+      display: block;
+      width: 54px;
+      height: 4px;
+      margin: 5px auto 0;
+      border-radius: 4px;
+      background: #222836;
+    }
+
+    .bits {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .bit {
+      position: absolute;
+      left: 124px;
+      bottom: 132px;
+      width: 96px;
+      padding: 8px 8px 4px;
+      background: #fff;
+      border: 3px solid #111;
+      border-radius: 2px;
+      box-shadow: 5px 5px 0 #e10600;
+    }
+
+    .bit b {
+      display: block;
+      height: 5px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+    }
+
+    .bit-a { animation: lift-a 3s ease-in-out forwards; }
+    .bit-b { animation: lift-b 3s ease-in-out forwards; }
+    .bit-c { animation: lift-c 3s ease-in-out forwards; }
+
+    .bit-a b:nth-child(1) { width: 70%; background: #7d8cff; }
+    .bit-a b:nth-child(2) { width: 92%; background: #5ee0b5; }
+    .bit-a b:nth-child(3) { width: 48%; background: #f2c14e; }
+
+    .bit-b b:nth-child(1) { width: 56%; background: #f08bb8; }
+    .bit-b b:nth-child(2) { width: 84%; background: #6ea8ff; }
+    .bit-b b:nth-child(3) { width: 64%; background: #5ee0b5; }
+
+    .bit-c b:nth-child(1) { width: 80%; background: #f2c14e; }
+    .bit-c b:nth-child(2) { width: 50%; background: #7d8cff; }
+    .bit-c b:nth-child(3) { width: 88%; background: #f08bb8; }
+
+    .status {
+      margin-top: 8px;
+      width: min(340px, 86vw);
+    }
+
+    .label {
+      margin: 0 0 10px;
+      text-align: center;
+      font-family: Impact, "Arial Black", sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: lowercase;
+      color: #fff;
+    }
+
+    .track {
+      direction: ltr;
+      height: 10px;
+      border-radius: 0;
+      border: 2px solid #fff;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: #e10600;
+      animation: fill 3s linear forwards;
+    }
+
+    @keyframes lift-a {
+      0% { transform: translate(0, 20px) scale(0.65); opacity: 0; }
+      8% { opacity: 1; }
+      18% { transform: translate(-118px, -188px) rotate(-12deg) scale(1); opacity: 1; }
+      70% { transform: translate(-104px, -206px) rotate(8deg) scale(1); opacity: 1; }
+      100% { transform: translate(0, 26px) scale(0.6); opacity: 0; }
+    }
+
+    @keyframes lift-b {
+      0% { transform: translate(0, 16px) scale(0.65); opacity: 0; }
+      8% { opacity: 1; }
+      18% { transform: translate(6px, -214px) rotate(6deg) scale(1); opacity: 1; }
+      70% { transform: translate(0, -230px) rotate(-8deg) scale(1); opacity: 1; }
+      100% { transform: translate(0, 22px) scale(0.6); opacity: 0; }
+    }
+
+    @keyframes lift-c {
+      0% { transform: translate(0, 24px) scale(0.65); opacity: 0; }
+      8% { opacity: 1; }
+      18% { transform: translate(112px, -168px) rotate(14deg) scale(1); opacity: 1; }
+      70% { transform: translate(98px, -186px) rotate(-10deg) scale(1); opacity: 1; }
+      100% { transform: translate(0, 28px) scale(0.6); opacity: 0; }
+    }
+
+    @keyframes scroll-code {
+      0% { transform: translateY(6px); }
+      16% { transform: translateY(-6px); }
+      72% { transform: translateY(-14px); }
+      100% { transform: translateY(4px); }
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    @keyframes fill {
+      to { width: 100%; }
+    }
+
+    @media (max-width: 700px) {
+      .site-header {
+        min-height: 64px;
+        padding: 8px 12px;
+        padding-top: max(8px, env(safe-area-inset-top));
+      }
+
+      .label {
+        font-size: 15px;
+        letter-spacing: 0.16em;
+      }
+
+      .menu {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        width: min(420px, 100%);
+      }
+
+      .menu-btn {
+        min-height: 64px;
+        font-size: 1rem;
+      }
+
+      .tiles,
+      .works,
+      .about-sheet {
+        grid-template-columns: 1fr;
+      }
+
+      .about-photo {
+        margin-inline: auto;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sheet,
+      .sheet.is-in .sheet-inner,
+      .sheet.is-in .rise,
+      .bit,
+      .lines,
+      .cursor,
+      .bar {
+        animation-duration: 0.01s;
+      }
+    }
+
+
+#hang .spiderman-wrapper{
+        height: 150vh;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    #hang .spiderman{
+        width: 500px;
+        height: 350px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        transform: rotate(180deg);
+        animation-name: spiderman;
+        animation-duration: 10s;
+        animation-iteration-count: infinite;
+    }
+    #hang .face{
+        width: 90px;
+        height: 90px;
+        background-color: #f80b15;
+        position: absolute;
+        border-radius: 50%;
+        border-bottom-left-radius: 25px;
+        transform: rotate(-45deg);
+        border: 2px solid #000;
+        overflow: hidden;
+        bottom: 202px;
+    }
+    #hang .eye{
+        width: 25px;
+        height: 40px;
+        position: absolute;
+        background: #fff;
+        border: 3px solid;
+        border-radius: 50%;
+        animation-name: eye-blinking;
+        animation-duration: .5s;
+        animation-iteration-count:2;
+   }
+    #hang .left-eye{
+        border-bottom-left-radius: 1px;
+        left: 11px;
+        transform: rotate(-206deg);
+        bottom: 36px;
+        z-index: 1;
+    }
+    #hang .right-eye{
+        border-bottom-right-radius: 1px;
+        left: 44px;
+        transform: rotate(-66deg);
+        bottom: 4px;
+        z-index: 1;
+    }
+    #hang .dress-design{
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        border: 1px solid;
+        border-bottom: 0px;
+        position: absolute;
+    }
+    #hang .line-1{
+        width: 15px;
+        height: 39px;
+        transform: rotate(45deg);
+        left: 12px;
+        bottom: 0px;
+    }
+    #hang .line-2{
+        width: 15px;
+        height: 45px;
+        transform: rotate(-135deg);
+        left: 53px;
+        bottom: 39px;
+    }
+    #hang .line-3{
+        width: 15px;
+        height: 45px;
+        transform: rotate(-91deg);
+        left: 58px;
+        bottom: 12px;
+    }
+    #hang .line-4{
+        width: 15px;
+        height: 45px;
+        transform: rotate(-181deg);
+        left: 27px;
+        bottom: 43px;
+    }
+    #hang .line-5{
+        width: 15px;
+        height: 29px;
+        transform: rotate(92deg);
+        left: 6px;
+        bottom: 27px;
+    }
+    #hang .line-6{
+        width: 15px;
+        height: 29px;
+        transform: rotate(-5deg);
+        left: 36px;
+        bottom: 0px;
+    }
+    #hang .line-7{
+        width: 15px;
+        height: 29px;
+        transform: rotate(-5deg);
+        left: 36px;
+        bottom: 0px;
+    }
+    #hang .line-8{
+        width: 15px;
+        height: 20px;
+        transform: rotate(-40deg);
+        left: 57px;
+        bottom: 7px;
+    }
+    #hang .line-9{
+        width: 15px;
+        height: 20px;
+        transform: rotate(133deg);
+        left: 7px;
+        bottom: 54px;
+    }
+    #hang .curve-design{
+        position: absolute;
+        background: transparent;
+        border-radius: 50%;
+        border-top: 1px solid;
+    }
+    #hang .curve-design:before{
+        position: absolute;
+        background: transparent;
+        border-radius: 50%;
+        border-top: 1px solid;
+    }
+    #hang .curve-line-1{
+        width: 26px;
+        height: 20px;
+        left: 43px;
+        transform: rotate(198deg);
+        bottom: 75px;                                   
+    }
+    #hang .curve-line-2{
+        width: 16px;
+        height: 20px;
+        left: 66px;
+        transform: rotate(224deg);
+        bottom: 64px;                                           
+    }
+    #hang .curve-line-3{
+        width: 27px;
+        height: 20px;
+        left: 72px;
+        transform: rotate(239deg);
+        bottom: 45px;
+    }
+    #hang .curve-line-4{
+        width: 16px;
+        height: 20px;
+        left: 81px;
+        transform: rotate(274deg);
+        bottom: 25px;
+    }
+    #hang .curve-line-5{
+        width: 16px;
+        height: 20px;
+        left: 27px;
+        transform: rotate(176deg);
+        bottom: 76px;
+    }
+    #hang .curve-line-6{
+        width: 16px;
+        height: 20px;
+        left: 0px;
+        transform: rotate(42deg);
+        bottom: -3px;
+    }
+    #hang .curve-line-7{
+        width: 22px;
+        height: 20px;
+        left: -14px;
+        transform: rotate(79deg);
+        bottom: 13px;
+    }
+    #hang .curve-line-8{
+        width: 24px;
+        height: 20px;
+        left: 14px;
+        transform: rotate(3deg);
+        bottom: -12px
+    }
+    #hang .curve-line-9{
+        width: 18px;
+        height: 20px;
+        left: 36px;
+        transform: rotate(3deg);
+        bottom: -14px;
+    }
+    #hang .curve-line-10{
+        width: 18px;
+        height: 20px;
+        left: -13px;
+        transform: rotate(89deg);
+        bottom: 32px;
+    }
+    #hang .curve-line-11{
+        width: 15px;
+        height: 15px;
+        left: -7px;
+        transform: rotate(114deg);
+        bottom: 49px;
+    }
+    #hang .curve-line-12{
+        width: 15px;
+        height: 15px;
+        left: 53px;
+        transform: rotate(-15deg);
+        bottom: -9px;
+    }
+    #hang .curve-line-13{
+        width: 15px;
+        height: 15px;
+        left: 66px;
+        transform: rotate(-38deg);
+        bottom: 0px;
+    }
+    #hang .curve-line-14{
+        width: 17px;
+        height: 13px;
+        left: 0px;
+        transform: rotate(124deg);
+        bottom: 64px;
+    }
+    #hang .curve-line-1.curve-design:before{
+        content: '';
+        width: 14px;
+        height: 20px;
+        left: 7px;
+        transform: rotate(3deg);
+        bottom: 13px;
+}
+    #hang .curve-line-2.curve-design:before{
+        content: &quot;&quot;;
+        left: 0px;
+        transform: rotate(4deg);
+        bottom: 16px;
+        width: 17px;
+        height: 20px;
+}
+    #hang .curve-line-3.curve-design:before{
+        content: &quot;&quot;;
+        width: 16px;
+        height: 18px;
+        left: 8px;
+        transform: rotate(377deg);
+        bottom: 15px;
+    }
+    #hang .curve-line-4.curve-design:before{
+        width: 17px;
+        height: 20px;
+        left: -2px;
+        transform: rotate(360deg);
+        bottom: 14px;
+        content: '';
+    }
+    #hang .curve-line-5.curve-design:before{
+        content: '';
+        width: 17px;
+        height: 20px;
+        left: 0px;
+        transform: rotate(4deg);
+        bottom: 14px;
+    }
+    #hang .curve-line-6.curve-design:before{
+        content: '';
+        width: 17px;
+        height: 20px;
+        left: 0px;
+        transform: rotate(3deg);
+        bottom: 10px;
+    }
+    #hang .curve-line-7.curve-design:before{
+        content: '';
+        width: 13px;
+        height: 17px;
+        left: 3px;
+        transform: rotate(-10deg);
+        bottom: 11px;
+    }
+    #hang .curve-line-8.curve-design:before{
+        content: '';
+        width: 16px;
+        height: 20px;
+        left: 7px;
+        transform: rotate(12deg);
+        bottom: 7px;
+    }
+    #hang .curve-line-9.curve-design:before{
+        content: '';
+        width: 18px;
+        height: 19px;
+        left: 0px;
+        transform: rotate(-9deg);
+        bottom: 9px;
+    }
+    #hang .curve-line-10.curve-design:before{
+        content: &quot;&quot;;
+        width: 18px;
+        height: 20px;
+        left: 0px;
+        transform: rotate(12deg);
+        bottom: 8px;
+    }
+    #hang .curve-line-11.curve-design:before{
+        content: '';
+        width: 10px;
+        height: 11px;
+        left: 2px;
+        transform: rotate(-14deg);
+        bottom: 8px;
+    }
+    #hang .body{
+        width: 75px;
+        height: 110px;
+        background-color: #f80b15;
+        position: absolute;
+        bottom: 102px;
+        z-index: -1;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
+        overflow: hidden;
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 15px;
+    }
+    #hang .body:before{
+        width: 50px;
+        height: 80px;
+        background-color: #042BE0;
+        content: &quot;&quot;;
+        position: absolute;
+        border-radius: 50%;
+        bottom: 14px;
+        left: -25px;
+    }
+    #hang .body:after{
+        width: 50px;
+        height: 80px;
+        background-color: #042bde;
+        content: &quot;&quot;;
+        position: absolute;
+        border-radius: 50%;
+        bottom: 14px;
+        right: -25px;
+    }
+    #hang .left-hand{
+        position: absolute;
+        bottom: 7px;
+        left: 10px;
+    }
+    #hang .left-hand:before{
+        width: 20px;
+        height: 10px;
+        background: transparent;
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        border-top: 2px solid #0606af;
+        left: 204px;
+        bottom: 140px;
+        z-index: 1;
+    }
+    #hang .left-hand:after{
+        width: 15px;
+        height: 10px;
+        background: transparent;
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        left: 202px;
+        bottom: 150px;
+        border-top: 2px solid #0606af;
+        transform: rotate(140deg);
+    }
+    #hang .leftarm{
+        width: 30px;
+        height: 69px;
+        background: blue;
+        position: absolute;
+        left: 188px;
+        bottom: 129px;
+        border-bottom-left-radius: 20px;
+        transform: rotate(34deg);
+        border-top-left-radius: 21px;
+        border-bottom-right-radius: 21px;
+    }
+    #hang .leftarm:before{
+        width: 31px;
+        height: 27px;
+        background: #f80b15;
+        content: '';
+        position: absolute;
+        border-top-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        left: 0px;
+        bottom: 43px;
+    }
+    #hang .left-forearm{
+        width: 30px;
+        height: 58px;
+        background: blue;
+        position: absolute;
+        left: 189px;
+        bottom: 110px;
+        border-bottom-left-radius: 20px;
+        transform: rotate(100deg);
+        border-bottom-right-radius: 21px;
+        border-top-left-radius: 14px;
+        border-top-right-radius: 14px
+    }
+    #hang .left-palm{
+        width: 8px;
+        height: 20px;
+        background: transparent;
+        position: absolute;
+        bottom: 121px;
+        left: 231px;
+        transform: rotate(9deg);
+        border: 1px solid;
+        border-right: 0px;
+        border-bottom-right-radius: 5px;
+        border-top-right-radius: 5px;
+    }
+    #hang .left-palm:before{
+        width: 8px;
+        height: 26px;
+        background-color: transparent;
+        content: '';
+        position: absolute;
+        left: 5px;
+        border-bottom-left-radius: 4px;
+        border-top-left-radius: 4px;
+        border: 1px solid;
+        border-left: 0px;
+        border-right: 0px;
+        bottom: -4px;
+    }
+    #hang .fingers{
+        width: 12px;
+        height: 8px;  
+        background: transparent;
+        position: absolute;
+        border: 1px solid;
+        border-left: 0px;
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+        border-top-left-radius: 5px;
+        background-color: #f80b15;
+    }
+    #hang .left-hand-finger1{
+        width: 12px;
+        height: 8px;
+        position: absolute;
+        bottom: 138px;
+        left: 247px;
+        transform: rotate(-50deg);
+    }
+    #hang .left-hand-finger2{
+        width: 12px;
+        height: 8px;
+        position: absolute;
+        bottom: 128px;
+        left: 250px;
+        transform: rotate(-6deg);
+    }
+    #hang .left-hand-finger3{
+        width: 12px;
+        height: 8px;
+        position: absolute;
+        bottom: 120px;
+        left: 249px;
+        transform: rotate(9deg);
+    }
+    #hang .left-hand-finger4{
+        width: 12px;
+        height: 8px;
+        position: absolute;
+        bottom: 113px;
+        left: 244px;
+        transform: rotate(25deg);
+    }
+    #hang .right-hand{
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+    }
+    #hang .rightarm{
+        width: 33px;
+        height: 63px;
+        background: blue;
+        position: absolute;
+        right: 192px;
+        bottom: 148px;
+        border-bottom-left-radius: 20px;
+        transform: rotate(120deg);
+        border-top-right-radius: 21px;
+        border-bottom-right-radius: 21px;
+    }
+    #hang .rightarm:before{
+        width: 33px;
+        height: 25px;
+        background: #f80b15;
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        border-bottom-right-radius: 15px;
+        border-bottom-left-radius: 15px;
+        border-top-right-radius: 25px;
+        left: 0px;
+    }
+    #hang .right-forearm{
+        width: 28px;
+        height: 50px;
+        background: blue;
+        position: absolute;
+        right: 170px;
+        bottom: 153px;
+        border-bottom-left-radius: 20px;
+        transform: rotate(29deg);
+        border-bottom-right-radius: 21px;
+         border-top-left-radius: 14px;
+        border-top-right-radius: 14px
+    }
+    #hang .right-palm{
+        width: 8px;
+        height: 20px;
+        background: #f80b15;
+        position: absolute;
+        bottom: 191px;
+         right: 166px;
+        transform: rotate(-61deg);
+        border: 1px solid;
+        border-right: 0px;
+        border-bottom-right-radius: 5px;
+        border-top-right-radius: 5px;
+    }
+    #hang .right-palm:before{
+        width: 12px;
+        height: 26px;
+        background-color: #f80b15;
+        content: '';
+        position: absolute;
+        left: 5px;
+        border-bottom-left-radius: 4px;
+        border-top-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+        border: 1px solid;
+        border-left: 0px;
+        border-right: 0px;
+        bottom: -4px;
+    }
+    #hang .right-hand-finger1{
+        width: 17px;
+        height: 8px;
+        position: absolute;
+        bottom: 209px;
+        right: 146px;
+        transform: rotate(3deg);
+        border-bottom-left-radius: 5px
+    }
+    #hang .right-hand-finger2{
+            width: 12px;
+            height: 8px;
+            position: absolute;
+            bottom: 217px;
+            right: 164px;
+            transform: rotate(-6deg);
+    }
+    #hang .right-hand-finger3{
+        width: 24px;
+        height: 8px;
+        position: absolute;
+        bottom: 229px;
+        right: 152px;
+        transform: rotate(-98deg);
+    }
+    #hang .right-hand-finger4{
+        width: 20px;
+        height: 8px;
+        position: absolute;
+        bottom: 226px;
+        transform: rotate(-65deg);
+        right: 142px;
+    }
+    #hang .right-hand:before{
+        width: 30px;
+        height: 21px;
+        background-color: transparent;
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        border-top: 2px solid #0606af;
+        bottom: 172px;
+        right: 187px;
+        z-index: 1;
+        transform: rotate(30deg);
+    }
+    #hang .thigs{
+        width: 40px;
+        height: 70px;
+        background: blue;
+        position: absolute;
+        bottom: 51px;
+         border-radius: 50%;
+    }
+    #hang .right-thigs{
+        right: 213px;
+        transform: rotate(-35deg);
+        z-index: -2;
+    }
+    #hang .right-thigs:before{
+        width: 26px;
+        height: 30px;
+        background: transparent;
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        bottom: -3px;
+        border-left: 3px solid #292956;
+        right: 10px;
+        transform: rotate(20deg);
+    }
+    #hang .left-thigs{
+        left: 208px;
+        transform: rotate(35deg);
+        z-index: -2;
+    }
+    #hang .left-thigs:before{
+        width: 26px;
+        height: 30px;
+        background: transparent;
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        bottom: 0px;
+        border-right: 3px solid #292956;
+        right: 2px;
+        transform: rotate(20deg);
+    }
+    #hang .calf{
+        width: 29px;
+        height: 60px;
+        background: #f80b15;
+        position: absolute;
+        bottom: 20px;
+        border-radius: 50%;
+    }
+    #hang .left-calf{
+        left: 209px;
+        transform: rotate(-35deg);
+    }
+    #hang .right-calf{
+        right: 215px;
+        transform: rotate(33deg);
+    }
+    #hang .left-calf:before{
+        content: '';
+        width: 29px;
+        height: 28px;
+        background: blue;
+        position: absolute;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        left: 3px;
+        transform: rotate(14deg);
+    }
+    #hang .left-calf:after{
+        width: 20px;
+        height: 10px;
+        background: transparent;
+        border-top: 2px solid #b50b03;
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        bottom: -4px;
+        left: 3px;
+        transform: rotate(-64deg);
+    }
+    #hang .right-calf:before{
+        content: '';
+        width: 29px;
+        height: 28px;
+        background: blue;
+        position: absolute;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        left: -1px;
+        transform: rotate(-2deg);
+    }
+    #hang .right-calf:after{
+        width: 20px;
+        height: 10px;
+        background: transparent;
+        border-top: 2px solid #b50b03;
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        bottom: -2px;
+        right: 5px;
+        transform: rotate(34deg);
+    }
+    #hang .foot{
+        position: absolute;
+        width: 30px;
+        height: 40px;
+        background: red;
+        bottom: 1px;
+        border-radius: 50%;
+        left: 232px;
+    }
+    #hang .foot:before{
+        width: 2px;
+        height: 40px;
+        background: #b50b03;
+        position: absolute;
+        content: '';
+        left: 14px;
+    }
+    #hang .body-shape-right{
+        width: 10px;
+        height: 65px;
+        background: transparent;
+        border-right: 3px solid #1730b1;
+        position: absolute;
+        bottom: 104px;
+        border-radius: 50%;
+        right: 211px;
+        transform: rotate(2deg);
+        z-index: 1;
+    }
+    #hang .body-shape-left{
+        width: 10px;
+        height: 30px;
+        background: transparent;
+        border-left: 3px solid #1730b1;
+        position: absolute;
+        bottom: 104px;
+        border-radius: 50%;
+        left: 211px;
+        transform: rotate(-6deg);
+        z-index: 1;
+    }
+    #hang .web{
+        position: absolute;
+        background: transparent;
+        border-top: 2px solid;
+        border-radius: 50%;
+        border-top-color: grey;
+        bottom: 400px;
+        transform: rotate(181deg);
+        right: 693px;
+        z-index: 5;
+    }
+    #hang .web:before{
+        position: absolute;
+        background: transparent;
+        border-top: 2px solid;
+        border-radius: 50%; 
+         border-top-color: grey;
+    }
+    #hang .web:after{
+        position: absolute;
+        background: transparent;
+        border-top: 2px solid;
+        border-radius: 50%;
+         border-top-color: grey;
+    }
+    #hang .web-1{
+        width: 70px;
+        height: 50px;
+        bottom: -130px;
+        left: 220px;
+        transform: rotate(-10deg);
+    }
+    #hang .web-1:before{
+        content: '';
+        width: 50px;
+        height: 38px;
+        position: absolute;
+        background: transparent;
+        border-top: 2px solid;
+        border-radius: 50%;
+        bottom: 26px;
+        left: 64px;
+        transform: rotate(-39deg);
+        border-top-color: grey;
+    }
+    #hang .web-1:after{
+        content: '';
+        width: 50px;
+        height: 38px;
+        position: absolute;
+        background: transparent;
+        border-top: 2px solid;
+        border-radius: 50%;
+        bottom: 26px;
+        left: -41px;
+        transform: rotate(63deg);
+        border-top-color: grey;
+    }
+    #hang .web-2{
+        width: 29px;
+        height: 40px;
+        bottom: -98px;
+        left: 205px;
+        transform: rotate(44deg);
+    }
+    #hang .web-2:before{
+        content: '';
+        width: 46px;
+        height: 50px;
+        position: absolute;
+        background: transparent;
+        border-top: 2px solid;
+        border-radius: 50%;
+        bottom: 17px;
+        left: 24px;
+        transform: rotate(-39deg);
+    }
+    #hang .web-2:after{
+        content: '';
+        width: 35px;
+        height: 35px;
+        position: absolute;
+        background: transparent;
+        border-top: 2px solid;
+        border-radius: 50%;
+        bottom: 61px;
+        left: 44px;
+        transform: rotate(-114deg);
+    }
+    #hang .web-3{
+        width: 24px;
+        height: 35px;
+        bottom: -83px;
+        left: 218px;
+        transform: rotate(42deg);
+    }
+    #hang .web-3:before{
+        content: '';
+        width: 28px;
+        height: 35px;
+        bottom: 18px;
+        left: 19px;
+        transform: rotate(-47deg);
+    }
+    #hang .web-3:after{
+        content: '';
+        width: 15px;
+        height: 20px;
+        bottom: 45px;
+        left: 36px;
+        transform: rotate(-79deg);
+    }
+    #hang .web-4{
+        width: 83px;
+        height: 50px;
+        bottom: -84px;
+        left: 177px;
+        transform: rotate(111deg);
+    }
+    #hang .web-5{
+        width: 87px;
+        height: 50px;
+        bottom: -63px;
+        left: 165px;
+        transform: rotate(143deg);
+    }
+    #hang .web-6{
+        width: 105px;
+        height: 50px;
+        bottom: -93px;
+        left: 196px;
+        transform: rotate(60deg);
+    }
+    #hang .web-7{
+        width: 87px;
+        height: 50px;
+        bottom: -50px;
+        left: 243px;
+        transform: rotate(201deg);
+    }
+    #hang .animation-web{
+        width: 2px;
+        height: 250px;
+        background: grey;
+        position: grey;
+        position: absolute;
+        left: 260px;
+        bottom: -24px;
+        animation-name: web;
+        animation-duration: 10s;
+        animation-iteration-count: infinite;
+    }
+    @keyframes spiderman{
+        0%{
+              bottom: 0px;
+        }
+        50%{
+            bottom: 150px;
+        }
+        100%{
+            bottom: 0px;
+        }
+    }
+    @keyframes web{
+        0%{
+            height: 250px;
+        }
+        50%{
+            height: 110px;
+        }
+        100%{
+            height: 250px;
+        }
+    }
+    @keyframes eye-blinking{
+        0%{
+            width: 25px;
+            height: 40px;
+        }
+        50%{
+            width: 15px;
+            height: 30px;
+        }
+        100%{
+             width: 25px;
+                height: 40px;
+        }
+    }
+    #hang .spider-body-top{
+        width: 7px;
+        height: 7px;
+        background-color: #000;
+        border-radius: 50%;
+        position: absolute;
+        left: 247px;
+        bottom: 169px;
+    }
+    #hang .spider-body-bottom{
+        width: 13px;
+        height: 13px;
+        background-color: #000;
+        border-radius: 50%;
+        position: absolute;
+        bottom: 157px;
+        left: 244px;
+    }
+    #hang .legs{
+        position: absolute;
+        border-left: 1px solid transparent;
+        border-right: 1px solid transparent;
+        border-bottom: 8px solid #000;
+    }
+    #hang .legs::before{
+        position: absolute;
+        border-left: 1px solid transparent;
+        border-right: 1px solid transparent;
+        border-bottom: 8px solid #000;
+    }
+    #hang .legs:after{
+        position: absolute;
+        border-left: 1px solid transparent;
+        border-right: 1px solid transparent;
+        border-bottom: 8px solid #000;
+    }
+    #hang .spider-leg1{
+        bottom: 162px;
+        transform: rotate(-91deg);
+        right: 257px;
+    }
+    #hang .spider-leg1:before{
+        content: '';
+        transform: rotate(-103deg);
+        bottom: -6px;
+        right: 3px;
+    }
+    #hang .spider-leg2{
+        bottom: 162px;
+        transform: rotate(90deg);
+        right: 240px;
+    }
+    #hang .spider-leg2:before{
+        content: '';
+        transform: rotate(103deg);
+        right: -5px;
+        bottom: -6px;
+    }
+    #hang .spider-leg3{
+        bottom: 158px;
+        transform: rotate(-91deg);
+        right: 255px;
+    }
+    #hang .spider-leg3:before{
+        content: '';
+        transform: rotate(-103deg);
+        bottom: -7px;
+        right: 3px;
+    }
+    #hang .spider-leg4{
+        bottom: 158px;
+        transform: rotate(90deg);
+        right: 241px;
+    }
+    #hang .spider-leg4:before{
+        content: '';
+        transform: rotate(103deg);
+        right: -5px;
+        bottom: -7px;
+    }
+    #hang .spider-leg5{
+        bottom: 165px;
+        transform: rotate(275deg);
+        right: 256px;
+    }
+    #hang .spider-leg5:before{
+        content: '';
+        transform: rotate(85deg);
+        right: -5px;
+        bottom: -6px;
+    }
+    #hang .spider-leg6{
+        bottom: 165px;
+        transform: rotate(90deg);
+        right: 242px;
+    }
+    #hang .spider-leg6:before{
+        content: '';
+        transform: rotate(279deg);
+        right: 3px;
+        bottom: -5px;
+    }
+    #hang .body-dress-design{
+        position: absolute;
+        left: 241px;
+        bottom: 207px;
+        transform: rotate(132deg);
+        z-index: 5;
+    }
+    #hang .body-dress-design-bottom{
+        position: absolute;
+        bottom: 96px;
+        left: 241px;
+        transform: rotate(-32deg);
+    }
+    #hang .body-dress-design-hand{
+        position: absolute;
+        bottom: 148px;
+        left: 320px;
+        transform: rotate(-67deg);
+        z-index: 5;
+    }
+    #hang .left-leg-design{
+        position: absolute;
+        bottom: 42px;
+        left: 200px;
+        z-index: 1;
+        transform: rotate(19deg);
+    }
+    #hang .right-leg-design{
+        position: absolute;
+        left: 298px;
+        bottom: 80px;
+        transform: rotate(-150deg);
+        z-index: 1;
+    }
+
+
+    #hang {
+      position: fixed;
+      z-index: 70;
+      top: 0;
+      inset-inline-end: 8px;
+      width: 128px;
+    }
+
+    #hang::before {
+      content: "";
+      position: absolute;
+      z-index: 5;
+      top: 0;
+      left: 50%;
+      width: 2px;
+      height: 52px;
+      margin-left: -1px;
+      background: #d0d0d0;
+      pointer-events: none;
+    }
+
+    #hang .hang-hit {
+      position: relative;
+      display: block;
+      width: 128px;
+      height: 188px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    #hang .hang-hit:focus-visible {
+      outline: 2px solid #e10600;
+      outline-offset: 2px;
+    }
+
+    #hang .container {
+      position: absolute;
+      width: 500px;
+      height: 640px;
+      left: 50%;
+      top: -8px;
+      margin-left: -250px;
+      transform: scale(0.3);
+      transform-origin: 50% 36px;
+      pointer-events: none;
+    }
+
+    #hang .spiderman-wrapper {
+      height: 640px;
+    }
+
+    #hang .web {
+      right: auto;
+      left: 0;
+      bottom: auto;
+      top: 0;
+      width: 500px;
+      height: 400px;
+      transform: none;
+      border: 0;
+    }
+
+    #user-panel {
+      position: absolute;
+      z-index: 3;
+      top: 176px;
+      inset-inline-end: 0;
+      width: 228px;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(14, 14, 16, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      color: #fff;
+    }
+
+    #user-panel[hidden] {
+      display: none;
+    }
+
+    #user-panel p {
+      margin: 0 0 8px;
+      color: #ff6a6a;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .panel-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .panel-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .panel-row button {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .panel-row button.is-on {
+      background: #e10600;
+      border-color: #e10600;
+      color: #fff;
+    }
+
+    html[data-theme="light"] body {
+      background:
+        radial-gradient(ellipse 70% 42% at 50% 0%, rgba(225, 6, 0, 0.1), transparent 58%),
+        #f4f4f6;
+      color: #161616;
+    }
+
+    html[data-theme="light"] #rays {
+      background: #f4f4f6;
+      filter: invert(1) hue-rotate(180deg);
+    }
+
+    html[data-theme="light"] .site-header {
+      background: rgba(255, 255, 255, 0.72);
+      border-bottom-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="light"] .brand img {
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    html[data-theme="light"] #hang::before {
+      background: #2a2a2a;
+    }
+
+    html[data-theme="light"] .menu-btn {
+      border-color: rgba(0, 0, 0, 0.1);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 244, 246, 0.88));
+      color: #171717;
+      box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 #fff;
+    }
+
+    html[data-theme="light"] .menu-btn:active {
+      box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.12);
+    }
+
+    html[data-theme="light"] .sheet-inner {
+      background:
+        radial-gradient(420px 180px at 100% 0%, rgba(225, 6, 0, 0.12), transparent 60%),
+        rgba(255, 255, 255, 0.94);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.12);
+    }
+
+    html[data-theme="light"] .sheet h2,
+    html[data-theme="light"] .phone,
+    html[data-theme="light"] .tile b {
+      color: #161616;
+    }
+
+    html[data-theme="light"] .sheet .slogan {
+      color: #222;
+    }
+
+    html[data-theme="light"] .sheet p,
+    html[data-theme="light"] .tile span {
+      color: #3c3c3c;
+    }
+
+    html[data-theme="light"] .tile {
+      background: rgba(0, 0, 0, 0.03);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .shot {
+      background: #fff;
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    html[data-theme="light"] .shot-bar {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    html[data-theme="light"] .shot-dots i {
+      background: #c5c5cb;
+    }
+
+    html[data-theme="light"] .shot-dots i:first-child {
+      background: #e10600;
+    }
+
+    html[data-theme="light"] .shot-url {
+      background: #fff;
+      color: #222;
+    }
+
+    html[data-theme="light"] #viewer {
+      background: #f3f3f5;
+    }
+
+    html[data-theme="light"] .viewer-bar {
+      background: #fff;
+      border-bottom-color: rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .viewer-url {
+      background: #eeeef1;
+      color: #1a1a1a;
+    }
+
+    html[data-theme="light"] #user-panel {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(0, 0, 0, 0.1);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+      color: #161616;
+    }
+
+    html[data-theme="light"] .panel-row button {
+      border-color: rgba(0, 0, 0, 0.12);
+      background: rgba(0, 0, 0, 0.04);
+      color: #161616;
+    }
+
+    html[data-theme="light"] .panel-row button.is-on {
+      background: #e10600;
+      border-color: #e10600;
+      color: #fff;
+    }
+
+    @media (max-width: 700px) {
+      #hang {
+        width: 92px;
+      }
+
+      #hang .hang-hit {
+        width: 92px;
+        height: 148px;
+      }
+
+      #hang .container {
+        transform: scale(0.2);
+      }
+
+      #user-panel {
+        top: 140px;
+        width: min(228px, calc(100vw - 20px));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #hang .spiderman,
+      #hang .eye,
+      #hang .animation-web {
+        animation: none;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div id="hang">
+    <button class="hang-hit" id="hang-btn" type="button" aria-expanded="false" aria-controls="user-panel" data-i18n-aria="panel.open" aria-label="پنل کاربری">
+<div class="container">
+        <div class="web">
+            <span class="web-1 web"></span>
+            <span class="web-2 web"></span>
+            <span class="web-3 web"></span>
+            <span class="web-4 web"></span>
+            <span class="web-5 web"></span>
+            <span class="web-6 web"></span>
+            <span class="web-7 web"></span>
+            <span class="animation-web"></span>
+        </div>
+        <div class="spiderman-wrapper">
+            <div class="spiderman">
+                <div class="face">
+                    <div class="eye left-eye "></div>
+                    <div class="eye right-eye"></div>
+                    <span class="line-1 dress-design"></span>
+                    <span class="line-2 dress-design"></span>
+                    <span class="line-3 dress-design"></span>
+                    <span class="line-4 dress-design"></span>                                                
+                    <span class="line-5 dress-design"></span>
+                    <span class="line-6 dress-design"></span>
+                    <span class="line-7 dress-design"></span>
+                    <span class="line-8 dress-design"></span>
+                    <span class="line-9 dress-design"></span>
+                    <span class="curve-line-1 curve-design"></span>
+                    <span class="curve-line-2 curve-design"></span>
+                    <span class="curve-line-3 curve-design"></span>
+                    <span class="curve-line-4 curve-design"></span>
+                    <span class="curve-line-5 curve-design"></span>
+                    <span class="curve-line-6 curve-design"></span>
+                    <span class="curve-line-7 curve-design"></span>
+                    <span class="curve-line-8 curve-design"></span>
+                    <span class="curve-line-9 curve-design"></span>
+                    <span class="curve-line-10 curve-design"></span>
+                    <span class="curve-line-11 curve-design"></span>
+                    <span class="curve-line-12 curve-design"></span>
+                    <span class="curve-line-13 curve-design"></span>
+                    <span class="curve-line-14 curve-design"></span>
+                </div>
+                <div class="body">
+                </div>
+                <div class="spider-logo">
+                    <div class="spider-body-top"></div>
+                    <div class="spider-body-bottom"></div>
+                    <div class="spider-leg1 legs"></div>
+                    <div class="spider-leg2 legs"></div>
+                    <div class="spider-leg3 legs"></div>
+                    <div class="spider-leg4 legs"></div>
+                    <div class="spider-leg5 legs"></div>
+                    <div class="spider-leg6 legs"></div>
+                </div>
+                <div class="body-dress-design">
+                    <span class="curve-line-6 curve-design"></span>
+                    <span class="curve-line-7 curve-design"></span>
+                    <span class="curve-line-8 curve-design"></span>
+                    <span class="curve-line-9 curve-design"></span>
+                    <span class="curve-line-10 curve-design"></span>
+                    <span class="curve-line-11 curve-design"></span>
+                    <span class="curve-line-12 curve-design"></span>
+                    <span class="curve-line-13 curve-design"></span>
+                </div>
+                <div class="body-dress-design-bottom">
+                    <span class="curve-line-6 curve-design"></span>
+                    <span class="curve-line-7 curve-design"></span>
+                    <span class="curve-line-8 curve-design"></span>
+                    <span class="curve-line-9 curve-design"></span>
+                    <span class="curve-line-10 curve-design"></span>
+                    <span class="curve-line-11 curve-design"></span>
+                </div>
+                <div class="body-dress-design-hand">
+                    <span class="curve-line-6 curve-design"></span>
+                    <span class="curve-line-7 curve-design"></span>
+                    <span class="curve-line-8 curve-design"></span>
+                </div>
+                <div class="body-shape-right"></div>
+                <div class="body-shape-left"></div>
+                <div class="left-hand">
+                    <span class="leftarm"></span>
+                    <span class="left-forearm"></span>
+                    <span class="left-palm"></span>
+                    <span class="left-hand-finger1 fingers"></span>
+                    <span class="left-hand-finger2 fingers"></span>
+                    <span class="left-hand-finger3 fingers"></span>
+                    <span class="left-hand-finger4 fingers"></span>
+                </div>
+                <div class="right-hand">
+                    <span class="rightarm"></span>
+                    <span class="right-forearm"></span>
+                    <span class="right-palm"></span>
+                    <span class="right-hand-finger1 fingers"></span>
+                    <span class="right-hand-finger2 fingers"></span>
+                    <span class="right-hand-finger3 fingers"></span>
+                    <span class="right-hand-finger4 fingers"></span>
+                </div>
+                <div class="left-leg-design">
+                    <span class="curve-line-6 curve-design"></span>
+                    <span class="curve-line-7 curve-design"></span>
+                    <span class="curve-line-8 curve-design"></span>
+                    <span class="curve-line-10 curve-design"></span>
+                    <span class="curve-line-11 curve-design"></span>
+                </div>
+                <div class="right-leg-design">
+                    <span class="curve-line-6 curve-design"></span>
+                    <span class="curve-line-7 curve-design"></span>
+                    <span class="curve-line-8 curve-design"></span>
+                    <span class="curve-line-10 curve-design"></span>
+                    <span class="curve-line-11 curve-design"></span>
+                    <span class="curve-line-14 curve-design"></span>
+                </div>
+                <div class="left-leg">
+                    <span class="left-thigs thigs"></span>
+                    <span class="left-calf calf"></span>
+                </div>
+                <div class="right-leg">
+                    <span class="right-thigs thigs"></span>
+                    <span class="right-calf calf"></span>
+                </div>
+                <div class="foot"></div>
+            </div>
+        </div>
+    </div>
+  
+  
+  
+    </button>
+    <div id="user-panel" hidden>
+      <p data-i18n="panel.theme">تم</p>
+      <div class="panel-row">
+        <button type="button" data-theme-set="dark" data-i18n="panel.dark">تاریک</button>
+        <button type="button" data-theme-set="light" data-i18n="panel.light">روشن</button>
+      </div>
+      <p data-i18n="panel.lang">زبان</p>
+      <div class="panel-row">
+        <button type="button" data-lang-set="fa">فارسی</button>
+        <button type="button" data-lang-set="en">English</button>
+        <button type="button" data-lang-set="ar">العربية</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="rays" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="#stage" aria-label="Mojde">
+      <img src="logo.png" alt="Mojde" width="392" height="392">
+    </a>
+  </header>
+
+  <main id="stage">
+    <nav class="menu" data-i18n-aria="nav.menu" aria-label="منوی سایت">
+      <button class="menu-btn" type="button" data-panel="about" aria-expanded="false" aria-controls="about"><span data-i18n="nav.about">درباره من</span></button>
+      <button class="menu-btn" type="button" data-panel="work" aria-expanded="false" aria-controls="work"><span data-i18n="nav.work">نمونه کار</span></button>
+      <button class="menu-btn" type="button" data-panel="design" aria-expanded="false" aria-controls="design"><span data-i18n="nav.design">طراحی سایت</span></button>
+      <button class="menu-btn" type="button" data-panel="contact" aria-expanded="false" aria-controls="contact"><span data-i18n="nav.contact">تماس با من</span></button>
+    </nav>
+
+    <section id="about" class="sheet" hidden>
+      <div class="sheet-inner about-sheet">
+        <img class="about-photo rise" src="about.jpg" alt="" width="225" height="225">
+        <div class="about-copy">
+          <p class="kicker rise" data-i18n="about.kicker">درباره من</p>
+          <h2 class="rise" data-i18n="about.name">کیارش قاسمیان</h2>
+          <p class="slogan rise" data-i18n="about.slogan">سایتی که همان نگاه اول، مشتری را نگه می‌دارد.</p>
+          <p class="rise" data-i18n="about.body">کیارش قاسمیان برند شما را به صفحه‌ای تبدیل می‌کند که دیده شود، اعتماد بسازد و مشتری را تا تماس یا خرید جلو ببرد. خدمات وب‌اپلیکیشن و سئو با استانداردهای این حوزه، به بهترین شکل انجام می‌شود.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="work" class="sheet" hidden>
+      <div class="sheet-inner">
+        <p class="kicker rise" data-i18n="work.kicker">نمونه کار</p>
+        <h2 class="rise" data-i18n="work.title">سایت‌هایی که ساخته شده</h2>
+        <p class="slogan rise" data-i18n="work.slogan">روی تصویر بروید و با اسکرول صفحه را ببینید. با کلیک، وارد همان سایت می‌شوید.</p>
+        <div class="works">
+          <article class="shot rise" tabindex="0" role="link" data-host="pvice.com" data-go="https://kiarash8081.github.io/Pvice/" aria-label="pvice.com">
+            <div class="shot-bar" aria-hidden="true"><span class="shot-dots"><i></i><i></i><i></i></span><span class="shot-url">pvice.com</span></div>
+            <div class="shot-view"><img src="pvice.jpg" alt="" width="480" height="7929"></div>
+          </article>
+          <article class="shot rise" tabindex="0" role="link" data-host="novacafe.com" data-go="https://kiarash8081.github.io/app_cafe/" aria-label="novacafe.com">
+            <div class="shot-bar" aria-hidden="true"><span class="shot-dots"><i></i><i></i><i></i></span><span class="shot-url">novacafe.com</span></div>
+            <div class="shot-view"><img src="cafe.jpg" alt="" width="480" height="1916"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="design" class="sheet" hidden>
+      <div class="sheet-inner">
+        <p class="kicker rise" data-i18n="design.kicker">طراحی سایت</p>
+        <h2 class="rise" data-i18n="design.title">طراحی سایت اختصاصی</h2>
+        <p class="slogan rise" data-i18n="design.slogan">راه اختصاصی کسب‌وکار شما برای ورود به دنیای دیجیتال</p>
+        <p class="rise" data-i18n="design.body">کیارش قاسمیان برای کسب‌وکار شما مسیری جدا در دنیای دیجیتال می‌سازد. خدمات وب‌اپلیکیشن و سئو با استانداردهای این حوزه، به بهترین شکل انجام می‌شود.</p>
+        <div class="tiles">
+          <article class="tile rise"><span class="mark"></span><b data-i18n="design.react.t">طراحی با ریکت</b><span data-i18n="design.react.d">خدمات طراحی سایت با ریکت</span></article>
+          <article class="tile rise"><span class="mark"></span><b data-i18n="design.seo.t">سئو و لوگو</b><span data-i18n="design.seo.d">خدمات سئو و ساخت لوگو</span></article>
+          <article class="tile rise"><span class="mark"></span><b data-i18n="design.data.t">داده و اطلاعات</b><span data-i18n="design.data.d">خدمات داده و اطلاعات انجام می‌شود</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="sheet" hidden>
+      <div class="sheet-inner">
+        <p class="kicker rise" data-i18n="contact.kicker">تماس با من</p>
+        <h2 class="rise" data-i18n="contact.title">راه‌های ارتباطی</h2>
+        <p class="slogan rise" data-i18n="contact.slogan">از طریق راه‌های ارتباطی مانند تلگرام، تماس و پیامک، ایده و کسب‌وکارتان را بگویید تا آن را به یک وب قدرتمند تبدیل کنیم.</p>
+        <a class="phone rise" href="tel:09107727044">09107727044</a>
+        <div class="tiles">
+          <article class="tile rise"><span class="mark"></span><b data-i18n="contact.tg.t">تلگرام</b><span data-i18n="contact.tg.d">ایده را در تلگرام بفرستید.</span></article>
+          <a class="tile rise" href="tel:09107727044"><span class="mark"></span><b data-i18n="contact.call.t">تماس</b><span data-i18n="contact.call.d">با همین شماره تماس بگیرید.</span></a>
+          <a class="tile rise" href="sms:09107727044"><span class="mark"></span><b data-i18n="contact.sms.t">پیامک</b><span data-i18n="contact.sms.d">کسب‌وکارتان را پیامک کنید.</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="viewer" hidden>
+    <div class="viewer-bar">
+      <button class="viewer-back" id="viewer-back" type="button" data-i18n="viewer.back">بازگشت</button>
+      <div class="viewer-url" id="viewer-url"></div>
+    </div>
+    <iframe id="viewer-frame" title="نمونه کار" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+  </div>
+
+  <div id="loader" role="status" aria-live="polite" aria-label="loading">
+    <div class="scene-slot">
+      <div class="scene">
+        <div class="loader-logo">
+          <img src="logo.png" alt="" width="392" height="392">
+        </div>
+        <div class="laptop">
+        <div class="lid">
+          <div class="screen">
+            <div class="lines">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="cursor"></div>
+          </div>
+        </div>
+        <div class="deck"></div>
+      </div>
+
+      <div class="bits">
+        <div class="bit bit-a"><b></b><b></b><b></b></div>
+        <div class="bit bit-b"><b></b><b></b><b></b></div>
+        <div class="bit bit-c"><b></b><b></b><b></b></div>
+      </div>
+    </div>
+    </div>
+
+    <div class="status">
+      <p class="label" data-i18n="loader">loading</p>
+      <div class="track"><div class="bar"></div></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.0.3/pixi.min.js"></script>
+  <script>
+    (function () {
+      var host = document.getElementById("rays");
+      if (!host || typeof PIXI === "undefined") return;
+
+      var fragSource = `
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D uSampler;
+uniform vec2 dimensions;
+uniform vec2 light;
+uniform bool parallel;
+uniform float aspect;
+uniform float gain;
+uniform float lacunarity;
+uniform float time;
+vec3 hash(vec3 p) {
+  p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
+  return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+}
+float noise(in vec3 p) {
+  vec3 i = floor(p);
+  vec3 f = fract(p);
+  vec3 u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(dot(hash(i + vec3(0.0, 0.0, 0.0)), f - vec3(0.0, 0.0, 0.0)),
+            dot(hash(i + vec3(1.0, 0.0, 0.0)), f - vec3(1.0, 0.0, 0.0)), u.x),
+        mix(dot(hash(i + vec3(0.0, 1.0, 0.0)), f - vec3(0.0, 1.0, 0.0)),
+            dot(hash(i + vec3(1.0, 1.0, 0.0)), f - vec3(1.0, 1.0, 0.0)), u.x), u.y),
+    mix(mix(dot(hash(i + vec3(0.0, 0.0, 1.0)), f - vec3(0.0, 0.0, 1.0)),
+            dot(hash(i + vec3(1.0, 0.0, 1.0)), f - vec3(1.0, 0.0, 1.0)), u.x),
+        mix(dot(hash(i + vec3(0.0, 1.0, 1.0)), f - vec3(0.0, 1.0, 1.0)),
+            dot(hash(i + vec3(1.0, 1.0, 1.0)), f - vec3(1.0, 1.0, 1.0)), u.x), u.y),
+    u.z);
+}
+float turb(vec3 pos, float lac, float gn) {
+  float f = 0.0;
+  float totalGain = gn;
+  vec3 q = 2.0 * pos;
+  f = totalGain * noise(q);
+  q = q * 2.01 * lac; totalGain *= gn; f += totalGain * noise(q);
+  q = q * 3.02 * lac; totalGain *= gn; f += totalGain * noise(q);
+  q = q * 3.03 * lac; totalGain *= gn; f += totalGain * noise(q);
+  q = q * 3.01 * lac; totalGain *= gn; f += totalGain * noise(q);
+  q = q * 3.99 * lac; totalGain *= gn; f += totalGain * noise(q);
+  q = q * 3.98 * lac; totalGain *= gn; f += totalGain * noise(q);
+  return abs(2.0 * f);
+}
+void main(void) {
+  gl_FragColor = texture2D(uSampler, vTextureCoord);
+  float d = 0.0;
+  vec2 coord = vTextureCoord;
+  if (parallel) {
+    d = (light.x * coord.x) + (light.y * coord.y * aspect);
+  }
+  float n = turb(vec3(d, d, 0.0) + vec3(time, 0.0, 62.1 + time) * 0.1, lacunarity, gain);
+  vec4 mist = vec4(n, n, n, 1.0);
+  mist *= 1.0 - coord.y;
+  mist = clamp(mist, 0.0, 1.0);
+  gl_FragColor += mist;
+}`;
+
+      var start = Date.now();
+      var filter = new PIXI.Filter(null, fragSource, {
+        time: 0,
+        lacunarity: 1,
+        gain: 0.3,
+        parallel: true,
+        light: [0, 0],
+        dimensions: [window.innerWidth, window.innerHeight],
+        aspect: 1
+      });
+      filter.apply = function (filterManager, input, output) {
+        var radians = -45 * Math.PI / 180;
+        this.uniforms.time = 0.0002 * (Date.now() - start);
+        this.uniforms.lacunarity = 1;
+        this.uniforms.gain = 0.3;
+        this.uniforms.light[0] = Math.cos(radians);
+        this.uniforms.light[1] = Math.sin(radians);
+        this.uniforms.dimensions[0] = input.filterFrame.width;
+        this.uniforms.dimensions[1] = input.filterFrame.height;
+        this.uniforms.aspect = input.filterFrame.height / input.filterFrame.width;
+        this.uniforms.parallel = true;
+        filterManager.applyFilter(this, input, output);
+      };
+
+      var app = new PIXI.Application({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: 0x000000,
+        resolution: window.devicePixelRatio || 1,
+        autoDensity: true
+      });
+      host.appendChild(app.view);
+
+      var wrap = new PIXI.Container();
+      var graphics = new PIXI.Graphics();
+      graphics.beginFill(0x000000);
+      graphics.drawRect(0, 0, window.innerWidth, window.innerHeight);
+      graphics.filterArea = app.screen;
+      wrap.filters = [filter];
+      wrap.addChild(graphics);
+      app.stage.addChild(wrap);
+
+      function fit() {
+        app.renderer.resize(window.innerWidth, window.innerHeight);
+        graphics.clear();
+        graphics.beginFill(0x000000);
+        graphics.drawRect(0, 0, window.innerWidth, window.innerHeight);
+        graphics.filterArea = app.screen;
+      }
+      window.addEventListener("resize", fit);
+
+      function draw() {
+        app.render();
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+  </script>
+  <script>
+    const loader = document.getElementById("loader");
+    const bar = loader.querySelector(".bar");
+
+    function finish() {
+      loader.classList.add("is-done");
+      loader.setAttribute("aria-label", "loading complete");
+    }
+
+    document.querySelectorAll(".menu-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        btn.classList.remove("is-on");
+        void btn.offsetWidth;
+        btn.classList.add("is-on");
+
+        const id = btn.getAttribute("data-panel");
+        const next = document.getElementById(id);
+        const already = next && !next.hasAttribute("hidden");
+
+        document.querySelectorAll(".sheet").forEach((sheet) => sheet.setAttribute("hidden", ""));
+        document.querySelectorAll(".menu-btn").forEach((item) => {
+          item.classList.remove("is-open");
+          item.setAttribute("aria-expanded", "false");
+        });
+
+        if (!next || already) return;
+
+        next.removeAttribute("hidden");
+        next.classList.remove("is-in");
+        void next.offsetWidth;
+        next.classList.add("is-in");
+        btn.classList.add("is-open");
+        btn.setAttribute("aria-expanded", "true");
+      });
+    });
+
+    document.querySelectorAll(".shot").forEach((shot) => {
+      const view = shot.querySelector(".shot-view");
+      let drag = false;
+      let startY = 0;
+
+      view.addEventListener("pointerdown", (event) => {
+        drag = false;
+        startY = event.clientY;
+      });
+
+      view.addEventListener("pointermove", (event) => {
+        if (Math.abs(event.clientY - startY) > 8) drag = true;
+      });
+
+      function openShot() {
+        const url = shot.getAttribute("data-go");
+        const host = shot.getAttribute("data-host");
+        if (!url || !host) return;
+        viewerUrl.textContent = host;
+        frame.src = url;
+        viewer.hidden = false;
+        document.body.style.overflow = "hidden";
+      }
+
+      shot.addEventListener("click", (event) => {
+        if (drag || event.target === view) {
+          drag = false;
+          return;
+        }
+        openShot();
+      });
+
+      shot.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openShot();
+        }
+      });
+    });
+
+    const viewer = document.getElementById("viewer");
+    const frame = document.getElementById("viewer-frame");
+    const viewerUrl = document.getElementById("viewer-url");
+
+    function closeViewer() {
+      viewer.hidden = true;
+      frame.src = "about:blank";
+      document.body.style.overflow = "";
+    }
+
+    document.getElementById("viewer-back").addEventListener("click", closeViewer);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !viewer.hidden) closeViewer();
+    });
+
+    bar.addEventListener("animationend", finish);
+    setTimeout(finish, 3600);
+  </script>
+<script>
+    const copy = {
+      fa: {
+        "nav.menu": "منوی سایت",
+        "nav.about": "درباره من",
+        "nav.work": "نمونه کار",
+        "nav.design": "طراحی سایت",
+        "nav.contact": "تماس با من",
+        "about.kicker": "درباره من",
+        "about.name": "کیارش قاسمیان",
+        "about.slogan": "سایتی که همان نگاه اول، مشتری را نگه می‌دارد.",
+        "about.body": "کیارش قاسمیان برند شما را به صفحه‌ای تبدیل می‌کند که دیده شود، اعتماد بسازد و مشتری را تا تماس یا خرید جلو ببرد. خدمات وب‌اپلیکیشن و سئو با استانداردهای این حوزه، به بهترین شکل انجام می‌شود.",
+        "work.kicker": "نمونه کار",
+        "work.title": "سایت‌هایی که ساخته شده",
+        "work.slogan": "روی تصویر بروید و با اسکرول صفحه را ببینید. با کلیک، وارد همان سایت می‌شوید.",
+        "design.kicker": "طراحی سایت",
+        "design.title": "طراحی سایت اختصاصی",
+        "design.slogan": "راه اختصاصی کسب‌وکار شما برای ورود به دنیای دیجیتال",
+        "design.body": "کیارش قاسمیان برای کسب‌وکار شما مسیری جدا در دنیای دیجیتال می‌سازد. خدمات وب‌اپلیکیشن و سئو با استانداردهای این حوزه، به بهترین شکل انجام می‌شود.",
+        "design.react.t": "طراحی با ریکت",
+        "design.react.d": "خدمات طراحی سایت با ریکت",
+        "design.seo.t": "سئو و لوگو",
+        "design.seo.d": "خدمات سئو و ساخت لوگو",
+        "design.data.t": "داده و اطلاعات",
+        "design.data.d": "خدمات داده و اطلاعات انجام می‌شود",
+        "contact.kicker": "تماس با من",
+        "contact.title": "راه‌های ارتباطی",
+        "contact.slogan": "از طریق راه‌های ارتباطی مانند تلگرام، تماس و پیامک، ایده و کسب‌وکارتان را بگویید تا آن را به یک وب قدرتمند تبدیل کنیم.",
+        "contact.tg.t": "تلگرام",
+        "contact.tg.d": "ایده را در تلگرام بفرستید.",
+        "contact.call.t": "تماس",
+        "contact.call.d": "با همین شماره تماس بگیرید.",
+        "contact.sms.t": "پیامک",
+        "contact.sms.d": "کسب‌وکارتان را پیامک کنید.",
+        "viewer.back": "بازگشت",
+        "loader": "loading",
+        "panel.open": "پنل کاربری",
+        "panel.theme": "تم",
+        "panel.dark": "تاریک",
+        "panel.light": "روشن",
+        "panel.lang": "زبان"
+      },
+      en: {
+        "nav.menu": "Site menu",
+        "nav.about": "About",
+        "nav.work": "Work",
+        "nav.design": "Web design",
+        "nav.contact": "Contact",
+        "about.kicker": "About",
+        "about.name": "Kiarash Ghasemian",
+        "about.slogan": "A site that holds the client from the first glance.",
+        "about.body": "Kiarash Ghasemian turns your brand into a page that gets seen, builds trust, and leads the client to a call or a purchase. Web app and SEO services are done to the standards of this field, at their best.",
+        "work.kicker": "Work",
+        "work.title": "Sites already built",
+        "work.slogan": "Hover the image and scroll to move through the page. Click to enter the site.",
+        "design.kicker": "Web design",
+        "design.title": "Custom website design",
+        "design.slogan": "Your business’s own path into the digital world",
+        "design.body": "Kiarash Ghasemian builds a separate digital path for your business. Web app and SEO services are done to the standards of this field, at their best.",
+        "design.react.t": "Built with React",
+        "design.react.d": "Website design with React",
+        "design.seo.t": "SEO and logo",
+        "design.seo.d": "SEO and logo design",
+        "design.data.t": "Data and information",
+        "design.data.d": "Data and information services are provided",
+        "contact.kicker": "Contact",
+        "contact.title": "Ways to reach me",
+        "contact.slogan": "Through Telegram, a phone call, or a text, tell me your idea and your business so we can turn it into a powerful website.",
+        "contact.tg.t": "Telegram",
+        "contact.tg.d": "Send your idea on Telegram.",
+        "contact.call.t": "Call",
+        "contact.call.d": "Call this number.",
+        "contact.sms.t": "Text",
+        "contact.sms.d": "Text your business details.",
+        "viewer.back": "Back",
+        "loader": "loading",
+        "panel.open": "Account panel",
+        "panel.theme": "Theme",
+        "panel.dark": "Dark",
+        "panel.light": "Light",
+        "panel.lang": "Language"
+      },
+      ar: {
+        "nav.menu": "قائمة الموقع",
+        "nav.about": "نبذة عني",
+        "nav.work": "أعمالي",
+        "nav.design": "تصميم المواقع",
+        "nav.contact": "اتصل بي",
+        "about.kicker": "نبذة عني",
+        "about.name": "كيارش قاسميان",
+        "about.slogan": "موقع يُبقي العميل من أول نظرة.",
+        "about.body": "يحوّل كيارش قاسميان علامتك إلى صفحة تُرى، وتبني الثقة، وتقود العميل إلى الاتصال أو الشراء. تُنجز خدمات تطبيقات الويب وتحسين محركات البحث وفق معايير هذا المجال وبأفضل شكل.",
+        "work.kicker": "أعمالي",
+        "work.title": "مواقع تم بناؤها",
+        "work.slogan": "مرّر المؤشر على الصورة وحرّكها للأعلى والأسفل. بالنقر تدخل إلى الموقع.",
+        "design.kicker": "تصميم المواقع",
+        "design.title": "تصميم موقع خاص",
+        "design.slogan": "طريق خاص لعملك نحو العالم الرقمي",
+        "design.body": "يبني كيارش قاسميان لعملك مساراً رقمياً مستقلاً. تُنجز خدمات تطبيقات الويب وتحسين محركات البحث وفق معايير هذا المجال وبأفضل شكل.",
+        "design.react.t": "تصميم بـ React",
+        "design.react.d": "خدمات تصميم المواقع بـ React",
+        "design.seo.t": "السيو والشعار",
+        "design.seo.d": "خدمات السيو وصناعة الشعار",
+        "design.data.t": "البيانات والمعلومات",
+        "design.data.d": "تُنجز خدمات البيانات والمعلومات",
+        "contact.kicker": "اتصل بي",
+        "contact.title": "طرق التواصل",
+        "contact.slogan": "عبر وسائل التواصل مثل تيليغرام والاتصال والرسائل، أخبرنا بفكرتك وعملك لنحوّلها إلى موقع قوي.",
+        "contact.tg.t": "تيليغرام",
+        "contact.tg.d": "أرسل فكرتك على تيليغرام.",
+        "contact.call.t": "اتصال",
+        "contact.call.d": "اتصل بهذا الرقم.",
+        "contact.sms.t": "رسالة",
+        "contact.sms.d": "أرسل تفاصيل عملك برسالة.",
+        "viewer.back": "رجوع",
+        "loader": "تحميل",
+        "panel.open": "لوحة المستخدم",
+        "panel.theme": "المظهر",
+        "panel.dark": "داكن",
+        "panel.light": "فاتح",
+        "panel.lang": "اللغة"
+      }
+    };
+
+    function applyLang(lang) {
+      const pack = copy[lang] || copy.fa;
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const value = pack[el.getAttribute("data-i18n")];
+        if (value != null) el.textContent = value;
+      });
+      document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+        const value = pack[el.getAttribute("data-i18n-aria")];
+        if (value != null) el.setAttribute("aria-label", value);
+      });
+      document.querySelectorAll("[data-lang-set]").forEach((btn) => {
+        btn.classList.toggle("is-on", btn.getAttribute("data-lang-set") === lang);
+      });
+      try { localStorage.setItem("lang", lang); } catch (err) {}
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      document.querySelectorAll("[data-theme-set]").forEach((btn) => {
+        btn.classList.toggle("is-on", btn.getAttribute("data-theme-set") === theme);
+      });
+      try { localStorage.setItem("theme", theme); } catch (err) {}
+    }
+
+    const hang = document.getElementById("hang");
+    const hangBtn = document.getElementById("hang-btn");
+    const userPanel = document.getElementById("user-panel");
+
+    hangBtn.addEventListener("click", () => {
+      const open = userPanel.hasAttribute("hidden");
+      if (open) userPanel.removeAttribute("hidden");
+      else userPanel.setAttribute("hidden", "");
+      hangBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!hang.contains(event.target)) {
+        userPanel.setAttribute("hidden", "");
+        hangBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !userPanel.hasAttribute("hidden")) {
+        userPanel.setAttribute("hidden", "");
+        hangBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    document.querySelectorAll("[data-theme-set]").forEach((btn) => {
+      btn.addEventListener("click", () => applyTheme(btn.getAttribute("data-theme-set")));
+    });
+
+    document.querySelectorAll("[data-lang-set]").forEach((btn) => {
+      btn.addEventListener("click", () => applyLang(btn.getAttribute("data-lang-set")));
+    });
+
+    applyLang(document.documentElement.lang || "fa");
+    applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
+  </script>
+
+</body>
+</html>
